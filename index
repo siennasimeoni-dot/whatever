@@ -1,40 +1,125 @@
-<!doctype html>
-<html>
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-
-  <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plain Room - Italian Colours</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #1a1a1a;
+            font-family: sans-serif;
+        </style>
 </head>
-
 <body>
 
-  <a-scene>
+    <!-- Three.js Library -->
+    <script src="https://cloudflare.com"></script>
+    <!-- OrbitControls to allow mouse movement/rotation -->
+    <script src="https://jsdelivr.net"></script>
 
-    <a-box
-      position="-1 1 -3"
-      color="red">
-    </a-box>
+    <script>
+        // 1. Scene, Camera, and Renderer Setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
 
-    <a-sphere
-      position="1 1 -4"
-      color="blue">
-    </a-sphere>
+        // 2. Camera Controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        // Limit zoom so user stays inside/near the room
+        controls.minDistance = 2;
+        controls.maxDistance = 15;
 
-    <a-plane
-      position="0 0 -4"
-      rotation="-90 0 0"
-      width="10"
-      height="10"
-      color="#DDDDDD">
-    </a-plane>
+        // 3. Room Dimensions
+        const width = 10;
+        const height = 6;
+        const depth = 10;
 
-    <a-sky
-      color="#EEEEEE">
-    </a-sky>
+        // 4. Materials (Italian Flag Colors + Plain Floor/Ceiling)
+        // Using Matte (MeshStandardMaterial) for a plain, clean look
+        const greenMat = new THREE.MeshStandardMaterial({ color: 0x008C45, roughness: 0.8 }); // Left Wall
+        const whiteMat = new THREE.MeshStandardMaterial({ color: 0xF4F5F0, roughness: 0.8 }); // Back Wall
+        const redMat   = new THREE.MeshStandardMaterial({ color: 0xCD212A, roughness: 0.8 }); // Right Wall
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0xD3D3D3, roughness: 0.9 }); // Light Gray Floor
+        const ceilMat  = new THREE.MeshStandardMaterial({ color: 0xEEEEEE, roughness: 1.0 }); // Plain Ceiling
 
-  </a-scene>
+        // 5. Building the Plain Room (Individual Wall Planes)
+        
+        // Left Wall (Green)
+        const leftWallGeo = new THREE.PlaneGeometry(depth, height);
+        const leftWall = new THREE.Mesh(leftWallGeo, greenMat);
+        leftWall.position.x = -width / 2;
+        leftWall.rotation.y = Math.PI / 2;
+        leftWall.receiveShadow = true;
+        scene.add(leftWall);
 
+        // Back Wall (White)
+        const backWallGeo = new THREE.PlaneGeometry(width, height);
+        const backWall = new THREE.Mesh(backWallGeo, whiteMat);
+        backWall.position.z = -depth / 2;
+        backWall.receiveShadow = true;
+        scene.add(backWall);
+
+        // Right Wall (Red)
+        const rightWallGeo = new THREE.PlaneGeometry(depth, height);
+        const rightWall = new THREE.Mesh(rightWallGeo, redMat);
+        rightWall.position.x = width / 2;
+        rightWall.rotation.y = -Math.PI / 2;
+        rightWall.receiveShadow = true;
+        scene.add(rightWall);
+
+        // Floor (Plain Light Gray)
+        const floorGeo = new THREE.PlaneGeometry(width, depth);
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.position.y = -height / 2;
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        // Ceiling (Plain White)
+        const ceilingGeo = new THREE.PlaneGeometry(width, depth);
+        const ceiling = new THREE.Mesh(ceilingGeo, ceilMat);
+        ceiling.position.y = height / 2;
+        ceiling.rotation.x = Math.PI / 2;
+        scene.add(ceiling);
+
+        // 6. Lighting
+        // Ambient soft light so everything is visible
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        // Gentle overhead ceiling light casting subtle shadows
+        const pointLight = new THREE.PointLight(0xffffff, 0.8, 20);
+        pointLight.position.set(0, (height / 2) - 0.5, 0);
+        pointLight.castShadow = true;
+        scene.add(pointLight);
+
+        // 7. Starting Position (Placing camera inside the plain room)
+        camera.position.set(0, 0, 4);
+        controls.target.set(0, 0, 0);
+        controls.update();
+
+        // 8. Animation & Render Loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // 9. Handle Window Resizing
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+    </script>
 </body>
-
 </html>
